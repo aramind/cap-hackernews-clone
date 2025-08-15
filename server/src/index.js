@@ -1,62 +1,33 @@
 const fs = require("fs");
 const path = require("path");
 const { ApolloServer } = require("apollo-server");
+const { PrismaClient } = require("@prisma/client");
+const { getUserId } = require("./utils");
 
-let links = [
-  {
-    id: "link-0",
-    url: "www.howtographql.com",
-    description: "Fullstack tutorial for GraphQL",
-  },
-];
+// resolvers
+const Query = require("./resolvers/Query");
+const Mutation = require("./resolvers/Mutation");
+const User = require("./resolvers/User");
+const Link = require("./resolvers/Link");
+
+const prisma = new PrismaClient();
 
 const resolvers = {
-  Query: {
-    info: () => `This is the API of Hackernews clone`,
-    feed: () => links,
-    // fetch single link by ID
-    link: (parent, args) => {
-      return links.find((link) => link.id === args.id) || null;
-    },
-  },
-
-  Mutation: {
-    post: (parent, args) => {
-      let idCount = links.length;
-
-      const link = {
-        id: `link-${idCount++}`,
-        description: args.description,
-        url: args.url,
-      };
-      links.push(link);
-      return link;
-    },
-
-    // update
-    updateLink: (parent, args) => {
-      const link = links.find((link) => link.id === args.id);
-      if (!link) return null;
-
-      if (args.url !== undefined) link.url = args.url;
-      if (args.description !== undefined) link.description = args.description;
-
-      return link;
-    },
-
-    deleteLink: (parent, args) => {
-      const index = links.findIndex((link) => link.id === args.id);
-      if (index === -1) return null;
-
-      const [deletedLink] = links.splice(index, 1);
-      return deletedLink;
-    },
-  },
+  Query,
+  Mutation,
+  User,
+  Link,
 };
-
 const server = new ApolloServer({
   typeDefs: fs.readFileSync(path.join(__dirname, "schema.graphql"), "utf8"),
   resolvers,
+  context: ({ req }) => {
+    return {
+      ...req,
+      prisma,
+      userId: req && req.headers.authorization ? getUserId(req) : null,
+    };
+  },
 });
 
 server.listen().then(({ url }) => console.log(`Server is running on ${url}`));
