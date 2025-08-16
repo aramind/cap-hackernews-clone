@@ -7,7 +7,14 @@ function feed(parent, args, context) {
         ],
       }
     : {};
-  return context.prisma.link.findMany({ where });
+
+  const links = context.prisma.link.findMany({
+    where,
+    skip: args.skip,
+    take: args.take,
+  });
+
+  return links;
 }
 
 module.exports = {
