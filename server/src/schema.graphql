@@ -1,6 +1,6 @@
 type Query {
   info: String!
-  feed(filter: String, skip: Int, take: Int): [Link!]!
+  feed(filter: String, skip: Int, take: Int, orderBy: LInkOrderByInput): Feed!
   # fetch a single link by its 'id'
   link(id: ID!): Link
 }
@@ -41,4 +41,20 @@ type Vote {
   id: ID!
   link: Link!
   user: User!
+}
+
+input LInkOrderByInput {
+  description: Sort
+  url: Sort
+  createdAt: Sort
+}
+
+enum Sort {
+  asc
+  desc
+}
+
+type Feed {
+  links: [Link!]!
+  count: Int!
 }
