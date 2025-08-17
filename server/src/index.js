@@ -4,6 +4,7 @@ const { ApolloServer } = require("apollo-server");
 const { PrismaClient } = require("@prisma/client");
 const { getUserId } = require("./utils");
 const { PubSub } = require("apollo-server");
+const { DateTimeResolver } = require("graphql-scalars");
 
 // resolvers
 const Query = require("./resolvers/Query");
@@ -23,6 +24,7 @@ const resolvers = {
   Link,
   Subscription,
   Vote,
+  DateTime: DateTimeResolver,
 };
 const server = new ApolloServer({
   typeDefs: fs.readFileSync(path.join(__dirname, "schema.graphql"), "utf8"),
