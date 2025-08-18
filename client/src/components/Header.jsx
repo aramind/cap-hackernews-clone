@@ -18,6 +18,10 @@ const Header = () => {
           new
         </NavLink>
         <div className="ml1">|</div>
+        <NavLink to="/top" className="ml1 no-underline black">
+          top
+        </NavLink>
+        <div className="ml1">|</div>
         <NavLink to="/search" className="ml1 no-underline black">
           search
         </NavLink>
