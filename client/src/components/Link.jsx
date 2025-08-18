@@ -1,10 +1,63 @@
 import React from "react";
 import { AUTH_TOKEN } from "../constants";
 import { timeDifferenceForDate } from "../utils";
+import { gql, useMutation } from "@apollo/client";
+import { FEED_QUERY } from "./LinkList";
 
+const VOTE_MUTATION = gql`
+  mutation VoteMutation($linkId: ID!) {
+    vote(linkId: $linkId) {
+      id
+      link {
+        id
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
+      user {
+        id
+      }
+    }
+  }
+`;
 const Link = (props) => {
   const { link } = props;
   const authToken = localStorage.getItem(AUTH_TOKEN);
+  const [vote] = useMutation(VOTE_MUTATION, {
+    variables: {
+      linkId: link.id,
+    },
+    update: (cache, { data: { vote } }) => {
+      // 1. Read existing data from the cache
+      const { feed } = cache.readQuery({
+        query: FEED_QUERY,
+      });
+
+      // 2. Update the specific link’s votes
+      const updatedLinks = feed.links.map((feedLink) => {
+        if (feedLink.id === link.id) {
+          return {
+            ...feedLink,
+            votes: feedLink.votes,
+          };
+        }
+        return feedLink;
+      });
+
+      // 3. Write the new data back into the cache
+      cache.writeQuery({
+        query: FEED_QUERY,
+        data: {
+          feed: {
+            links: updatedLinks,
+          },
+        },
+      });
+    },
+  });
 
   return (
     <div className="flex mt2 items-start">
@@ -14,9 +67,7 @@ const Link = (props) => {
           <div
             className="ml1 gray f11"
             style={{ cursor: "pointer" }}
-            onClick={() => {
-              console.log("Clicked vote button");
-            }}
+            onClick={vote}
           >
             ▲
           </div>
